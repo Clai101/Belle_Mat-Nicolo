@@ -8,7 +8,7 @@ namespace Belle {
   void User_reco::hist_def( void )
   { extern BelleTupleManager* BASF_Histogram;    
     t1 = BASF_Histogram->ntuple ("lam_p_k_pi",
-				 "en ml md p ch chl chd chdsc ntr ecm");
+				 "en ml md p ch chl chd chdsc ntr dstm chlt chd chdst");
   };
   
   
@@ -69,6 +69,7 @@ namespace Belle {
     makeProton(p, ap, 1);
     makeKPi(k_p, k_m, pi_p, pi_m, 1);
     makePi0(pi0);
+    withEminCutPi0(pi0, 0.05);
     makeGamma(gamma);
     withDrDzCut(p, 1., 2.);
     withDrDzCut(k_m, 1., 2.);
@@ -96,10 +97,11 @@ namespace Belle {
     
     std::vector<Particle> lamc_p, lamc_m;
     std::vector<Particle> lam, alam;
-    std::vector<Particle> ups, rho, rho_m, rho_p, rho4;
+    std::vector<Particle> ups, rho, rho_2m, rho_2p, rho4, rho_m, rho_p;
     std::vector<Particle> D0, aD0, D_p, D_m;
     std::vector<Particle> D_star_p, D_star_m, D_star0, aD_star0;
-
+    
+    makeLambda(lam, alam);
     /* 
 
     Mesons
@@ -107,29 +109,40 @@ namespace Belle {
     */
 
     combination(rho, m_ptypeRHO0, pi_p, pi_m);
-    combination(rho4, m_ptypeRHO0, rho, rho);
 
-    for(std::vector<Particle>::iterator l = rho4.begin(); l!=rho4.end(); ++l) {
+    combination(rho_2p, m_ptypeRHO0, pi_p, pi_p);
+    combination(rho_2m, m_ptypeRHO0, pi_m, pi_m);
+    combination(rho4, m_ptypeRHO0, rho_2p, rho_2m);
+
+    //    combination(rho4, m_ptypeRHO0, pi_p, pi_p, pi_m, pi_m);
+    
+
+    /*    for(std::vector<Particle>::iterator l = rho4.begin(); l!=rho4.end(); ++l) {
       for(std::vector<Particle>::iterator j = l; j!=rho4.end(); ++j) {
-        if (rho4[j].child(1).child(1) == rho4[l].child(0).child(1) or rho4[j].child(1).child(0) == rho4[l].child(0).child(0)) { 
+        if (rho4[j].child(1).child(1) == rho4[l].child(0).child(1) && rho4[j].child(1).child(0) == rho4[l].child(0).child(0) &&
+	    rho4[j].child(1).child(1) == rho4[l].child(0).child(1) && rho4[j].child(1).child(0) == rho4[l].child(0).child(0)) { 
           rho4.erase(j); --j; continue;}
         }
       }
+    */
 
-    combination(rho_p, m_ptypeRHO0, rho, pi_p);
-    for(std::vector<Particle>::iterator l = rho_p.begin(); l!=rho_p.end(); ++l) {
+    combination(rho_p, m_ptypeRHO0, rho_2p, pi_m);
+    
+    /*for(std::vector<Particle>::iterator l = rho_p.begin(); l!=rho_p.end(); ++l) {
       for(std::vector<Particle>::iterator j = l; j!=rho_p.end(); ++j) {
         if (rho_p[j].child(0).child(0) == rho_p[l].child(1)) { 
           rho_p.erase(j); --j; continue;}
         }
-      }
-    combination(rho_m, m_ptypeRHO0, rho, pi_m);   
-    for(std::vector<Particle>::iterator l = rho_m.begin(); l!=rho_m.end(); ++l) {
+      }*/
+
+    combination(rho_m, m_ptypeRHO0, rho_2m, pi_p);   
+    /*for(std::vector<Particle>::iterator l = rho_m.begin(); l!=rho_m.end(); ++l) {
       for(std::vector<Particle>::iterator j = l; j!=rho_m.end(); ++j) {
         if (rho_m[j].child(0).child(1) == rho_m[l].child(1)) { 
           rho_m.erase(j); --j; continue;}
         }
       }
+    */
 
     /*D*/
 
@@ -157,17 +170,17 @@ namespace Belle {
 
     combination(D_p, m_ptypeDP, k_m, pi_p, pi_p, 0.05);
     combination(D_m, m_ptypeDM, k_p, pi_m, pi_m, 0.05);
-    setUserInfo(D_p,  1);
-    setUserInfo(D_m,  1);
+    setUserInfo(D_p,  11);
+    setUserInfo(D_m,  11);
 
     /*D_star*/
 
-    combination(D_star_p, m_ptypeDstarP, D0, pi_p, 0.01);
-    combination(D_star_m, m_ptypeDstarM, D0, pi_m, 0.01);
-    combination(D_star0, m_ptypeDstar0, D0, pi0, 0.01);
-    combination(aD_star0, m_ptypeDstarB, aD0, pi0, 0.01);
-    setUserInfo(D_star_p, 1);
-    setUserInfo(D_star_m, 1);
+    combination(D_star_p, m_ptypeDstarP, D0, pi_p, 0.05);
+    combination(D_star_m, m_ptypeDstarM, D0, pi_m, 0.05);
+    combination(D_star0, m_ptypeDstar0, D0, pi0, 0.05);
+    combination(aD_star0, m_ptypeDstarB, aD0, pi0, 0.05);
+    setUserInfo(D_star_p, 11);
+    setUserInfo(D_star_m, 11);
     setUserInfo(D_star0, 1);
     setUserInfo(aD_star0, 1);
 
@@ -175,8 +188,8 @@ namespace Belle {
     combination(D_star_m, m_ptypeDstarM, D_m, pi0, 0.01);
     combination(D_star0, m_ptypeDstar0, D0, gamma, 0.01);
     combination(aD_star0, m_ptypeDstarB, aD0, gamma, 0.01);
-    setUserInfo(D_star_p, 2);
-    setUserInfo(D_star_m, 2);
+    setUserInfo(D_star_p, 12);
+    setUserInfo(D_star_m, 12);
     setUserInfo(D_star0, 2);
     setUserInfo(aD_star0, 2);
 
@@ -202,6 +215,18 @@ namespace Belle {
     setUserInfo(lamc_p,  2);
     setUserInfo(lamc_m,  2);
 
+    /*
+    combination(lamc_p, m_ptypeLAMC, lam, pi_p, pi0, 0.1);
+    combination(lamc_m, m_ptypeLAMC, alam, pi_m, pi0, 0.1);
+    setUserInfo(lamc_p,  3);
+    setUserInfo(lamc_m,  3);
+    */
+
+    /*combination(lam, m_ptypeLAM, p, pi_m, 0.1);
+    combination(alam, m_ptypeLAM, ap, pi_p, 0.1);
+    setUserInfo(lam,  1);
+    setUserInfo(alam,  1);
+    */
     /*
     Epsilon 4 pi
     */
@@ -251,14 +276,28 @@ namespace Belle {
         double en = pStar(u, elec, posi).e();
         double p = pStar(u, elec, posi).vect().mag();
         double mass_lamc = lamc.mass();
-        double mass = ach.mass();
+	// double mass = ach.mass();
         int ch = dynamic_cast<UserInfo&>(u.userInfo()).channel();
         int chl = dynamic_cast<UserInfo&>(lamc.userInfo()).channel();
-        int chd = dynamic_cast<UserInfo&>(ach.userInfo()).channel();
+        int chdot = dynamic_cast<UserInfo&>(ach.userInfo()).channel();
         int chdsc = -1;
-        if (ch == 4 or ch == 5)
+	double dst_m = 0;
+	double mass = 0;
+
+	int chd = -1;
+	int chdst = -1;
+	int chlt = -1;
+
+
+	if (ch == 4 or ch == 5) {
              chdsc = dynamic_cast<UserInfo&>(dsc.userInfo()).channel();
-        double ecm = (en + p)*(en + p) - p*p;
+	     dst_m = ach.mass();
+	     mass = dsc.mass();
+	}
+	else{
+	     mass = ach.mass();
+	}
+	//        double ecm = (en + p)*(en + p) - p*p;
 
         // cout << "in lamc cicle"  << mass << endl;
 
@@ -276,14 +315,40 @@ namespace Belle {
       
         t1->column("ch", ch);     
         t1->column("chl", chl);
-        t1->column("chd", chd);
 
         t1->column("chdsc", chdsc);
 
         t1->column("en", en);
         t1->column("ntr", ntr);
-        t1->column("ecm", ecm);
+        //t1->column("ecm", ecm);
 
+	switch(ch){
+	case 6:
+	  chd = chdot;
+	  break;
+	case 7:
+	  chd = chdot;
+	  break;
+	case 1:
+	  chlt = chdot;
+	  break;
+	case 2:
+	  chlt = chdot;
+	  break;
+	case 3:
+	  chlt = chdot;
+	  break;
+	case 4:
+	  chdst = chdot;
+	  break;
+	case 5:
+	  chdst = chdot;
+	  break;
+	}
+        t1->column("dstm", dst_m);
+        t1->column("chlt", chlt);
+        t1->column("chd", chd);
+        t1->column("chdst", chdst);
         t1->dumpData();
 
 
