@@ -2,7 +2,7 @@ void merger_fil() { // имя функции = имя файла
     std::vector<std::string> names {"21.0.root", "21.3.root", "23.1.root","23.3.root",
     "23.5.root", "21.2.root", "23.0.root", "23.2.root", "23.4.root","23.6.root"};
 	TCanvas *c1 = new TCanvas("c1", "c1", 800, 600);
-	TH1F *hist = new TH1F("hist", "", 100, 8, 12);
+	TH1F *hist = new TH1F("hist", "", 500, 8, 12);
 	
 	for (auto iter {names.begin()}; iter != names.end(); ++iter) {
 		TFile *input = new TFile((*iter).c_str(), "read");
