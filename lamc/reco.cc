@@ -8,7 +8,7 @@ namespace Belle {
   void User_reco::hist_def( void )
   { extern BelleTupleManager* BASF_Histogram;    
     t1 = BASF_Histogram->ntuple ("lam_p_k_pi",
-				 "en ml md p ch chl chd chdsc ntr dstm chlt chd chdst");
+				 "en p ml mach mdst chu chl chdt chdsc chlt chdst ntr");
   };
   
   
@@ -114,10 +114,10 @@ namespace Belle {
     combination(rho_2m, m_ptypeRHO0, pi_m, pi_m);
     combination(rho4, m_ptypeRHO0, rho_2p, rho_2m);
 
-    //    combination(rho4, m_ptypeRHO0, pi_p, pi_p, pi_m, pi_m);
+    //combination(rho4, m_ptypeRHO0, pi_p, pi_p, pi_m, pi_m);
     
 
-    /*    for(std::vector<Particle>::iterator l = rho4.begin(); l!=rho4.end(); ++l) {
+    /*for(std::vector<Particle>::iterator l = rho4.begin(); l!=rho4.end(); ++l) {
       for(std::vector<Particle>::iterator j = l; j!=rho4.end(); ++j) {
         if (rho4[j].child(1).child(1) == rho4[l].child(0).child(1) && rho4[j].child(1).child(0) == rho4[l].child(0).child(0) &&
 	    rho4[j].child(1).child(1) == rho4[l].child(0).child(1) && rho4[j].child(1).child(0) == rho4[l].child(0).child(0)) { 
@@ -255,49 +255,52 @@ namespace Belle {
     combination(ups, m_ptypeUPS4, lamc_m, D_p, p, pi_m, 2.0);
     combination(ups, m_ptypeUPS4, lamc_p, D_m, ap, pi_p, 2.0);
     setUserInfo(ups,  7);
+    
 
-
-
-    //cout << " count ups " << ups.size() << endl;
-    // lamc_p D0 ap,  D+ ap pi-
-        
+    /*
+    ach - anti c hadron
+    chu - channel of ups decay
+    chl - channel of lamc decay
+    chach - channel of ach decay
+    chdsc - channel of D* (d star) child (D meson)
+    chdt - channel of D meson deacay (t for tag)
+    chdst - channel of D* meson deacay (t for tag)
+    chlt - channel of lamc, which is ach, decay
+    */
     for(int j=0; j<ups.size(); ++j) {
-        Particle u=ups[j];
-	//cout << "something" << endl;	
+        Particle u=ups[j];	
         int ntr=0;
         for(int jj=0; jj<all.size(); ++jj) 
-	  if (!checkSame(all[jj],u)) ntr++;
-	
-	//cout << "flag " << ntr << endl;
-
+	      if (!checkSame(all[jj],u)) ntr++;
         Particle lamc = u.child(0);
         Particle ach = u.child(1);
         Particle dsc = u.child(1).child(0);
         double en = pStar(u, elec, posi).e();
         double p = pStar(u, elec, posi).vect().mag();
         double mass_lamc = lamc.mass();
-	// double mass = ach.mass();
-        int ch = dynamic_cast<UserInfo&>(u.userInfo()).channel();
+	      // double mass = ach.mass();
+        int chu = dynamic_cast<UserInfo&>(u.userInfo()).channel();
         int chl = dynamic_cast<UserInfo&>(lamc.userInfo()).channel();
-        int chdot = dynamic_cast<UserInfo&>(ach.userInfo()).channel();
+        int chach = dynamic_cast<UserInfo&>(ach.userInfo()).channel();
+        
         int chdsc = -1;
-	double dst_m = 0;
-	double mass = 0;
+        int chdt = -1;
+        int chdst = -1;
+        int chlt = -1;
+        
+	      double mass_dst = 0;
+	      double mass_ach = 0;
 
-	int chd = -1;
-	int chdst = -1;
-	int chlt = -1;
-
-
-	if (ch == 4 or ch == 5) {
+      	if (ch == 4 or ch == 5) {
              chdsc = dynamic_cast<UserInfo&>(dsc.userInfo()).channel();
-	     dst_m = ach.mass();
-	     mass = dsc.mass();
-	}
-	else{
-	     mass = ach.mass();
-	}
-	//        double ecm = (en + p)*(en + p) - p*p;
+      	     mass_dst = ach.mass();
+      	     mass_ach = dsc.mass();
+      	}
+      	else{
+      	     mass_ach = ach.mass();
+      	}
+
+	      //double ecm = (en + p)*(en + p) - p*p;
 
         // cout << "in lamc cicle"  << mass << endl;
 
@@ -307,52 +310,50 @@ namespace Belle {
         m23 = (lamc.child(1).p() + lamc.child(2).p()).m();
         */
 
+        switch(ch){
+          case 1:
+            chlt = chach;
+            break;
+          case 2:
+            chlt = chach;
+            break;
+          case 3:
+            chlt = chach;
+            break;
+          case 4:
+            chdst = chach;
+            break;
+          case 5:
+            chdst = chach;
+            break;
+          case 6:
+            chdt = chach;
+            break;
+          case 7:
+            chdt = chach;
+            break;
+        }
 
         t1->column("ml", mass_lamc);     
-        t1->column("md", mass);
-    
-        t1->column("p", p);
-      
-        t1->column("ch", ch);     
-        t1->column("chl", chl);
+        t1->column("mach", mass_ach);
+        t1->column("mdst", mass_dst);
 
+        t1->column("p", p);
+
+        t1->column("chu", chu);     
+        t1->column("chl", chl);
+        t1->column("chlt", chlt);
+        t1->column("chdt", chdt);
+        t1->column("chdst", chdst);
         t1->column("chdsc", chdsc);
 
         t1->column("en", en);
         t1->column("ntr", ntr);
-        //t1->column("ecm", ecm);
 
-	switch(ch){
-	case 6:
-	  chd = chdot;
-	  break;
-	case 7:
-	  chd = chdot;
-	  break;
-	case 1:
-	  chlt = chdot;
-	  break;
-	case 2:
-	  chlt = chdot;
-	  break;
-	case 3:
-	  chlt = chdot;
-	  break;
-	case 4:
-	  chdst = chdot;
-	  break;
-	case 5:
-	  chdst = chdot;
-	  break;
-	}
-        t1->column("dstm", dst_m);
-        t1->column("chlt", chlt);
-        t1->column("chd", chd);
-        t1->column("chdst", chdst);
         t1->dumpData();
 
 
-	*status = 1;
+	  *status = 1;
     }
     
     if (*status==1) nwritt++;
