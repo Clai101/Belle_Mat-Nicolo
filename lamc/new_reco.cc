@@ -8,7 +8,7 @@ namespace Belle {
   void User_reco::hist_def( void )
   { extern BelleTupleManager* BASF_Histogram;    
     t1 = BASF_Histogram->ntuple ("lam_p_k_pi",
-				 "en ml md p ch chl chd chdsc ntr dstm chlt chd chdst");
+				 "ml mach p chu chl chlt chlt chdt chdsc en ecm ntr");
   };
   
   
@@ -83,8 +83,6 @@ namespace Belle {
     withDrDzCut(k_p, 1., 2.);
     withDrDzCut(pi_m, 1., 2.);
 
-
-    withEminCutPi0(pi0, 0.05);
     withKaonIdCut(k_p, k_m, 0.6);
     withProtonIdCut(p, ap, 0.6);
     
@@ -110,10 +108,6 @@ namespace Belle {
     combination(rho_mmp, m_ptypeRHO0, pi_p, pi_p, pi_m);
     combination(rho4, m_ptypeRHO0, rho_2p, rho_2m);
 
-    makeLambda(lam, alam);
-   
-
-
     makeKs(k_s);
     makeLambda(lam,alam);
 
@@ -122,8 +116,8 @@ namespace Belle {
     Vector3 P(l->px(),l->py(),0);
     V=V-ip_position;
     V.setZ(0.);
-    if (abs(l->mass()-0.4977)>0.03 || V.perp()<0.5 ||
-cos(V.angle(P))<0.99 || l->mdstVee2().z_dist()>1. ) {
+    if (abs(l->mass()-0.4977)>0.03 || V.perp()<0.1 ||
+    cos(V.angle(P))<0.99 || l->mdstVee2().z_dist()>1. ) {
       k_s.erase(l); --l; continue;
     }
   }
@@ -136,7 +130,21 @@ cos(V.angle(P))<0.99 || l->mdstVee2().z_dist()>1. ) {
       double p_id;
       if (l->child(0).pType().mass()>l->child(1).pType().mass()) p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(0).mdstCharged()));
       else p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(1).mdstCharged()));                               
-      if (abs(l->mass()-1.1157)>0.01 || l->mdstVee2().z_dist()>13. || p_id<0.6 ) {
+      if (abs(l->mass()-1.1157)>0.01 || l->mdstVee2().z_dist()>1. || p_id<0.6 ) {
+        lam.erase(l); --l;
+      }
+    }
+
+
+   for(std::vector<Particle>::iterator l = alam.begin(); l!=lam.end(); ++l) {
+      HepPoint3D V(l->mdstVee2().vx(),l->mdstVee2().vy(),0);
+      Vector3 P(l->px(),l->py(),0);
+      V=V-ip_position;
+      V.setZ(0.);
+      double p_id;
+      if (l->child(0).pType().mass()>l->child(1).pType().mass()) p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(0).mdstCharged()));
+      else p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(1).mdstCharged()));                               
+      if (abs(l->mass()-1.1157)>0.01 || l->mdstVee2().z_dist()>1. || p_id<0.6 ) {
         lam.erase(l); --l;
       }
     }
@@ -180,8 +188,8 @@ cos(V.angle(P))<0.99 || l->mdstVee2().z_dist()>1. ) {
 
     combination(D_p, m_ptypeD0, k_s, pi_p, 0.05);
     combination(D_m, m_ptypeD0B, k_s, pi_m, 0.05);
-    setUserInfo(D0, 12);
-    setUserInfo(aD0, 12);
+    setUserInfo(D_m, 12);
+    setUserInfo(D_p, 12);
 
     /*
     Lambda mesons
@@ -218,19 +226,24 @@ cos(V.angle(P))<0.99 || l->mdstVee2().z_dist()>1. ) {
     setUserInfo(ups, 2);
 
     combination(ups, m_ptypeUPS4, lamc_p, lamc_m, rho4, 2.0);
-    setUserInfo(ups, 3);
+    setUserInfo(ups, 3);chl chlt chlt chdt chdst chdsc en ntr
 
     combination(ups, m_ptypeUPS4, lamc_m, D0, p, 2.0);
     combination(ups, m_ptypeUPS4, lamc_p, aD0, ap, 2.0);
     setUserInfo(ups, 4);
-
+  
+    combination(ups, m_ptypeUPS4, lamc_m, D0, p, rho, 2.0);
+    combination(ups, m_ptypeUPS4, lamc_p, aD0, ap, rho, 2.0);
+    setUserInfo(ups, 5);
+    
     combination(ups, m_ptypeUPS4, lamc_m, D_p, p, pi_m, 2.0);
     combination(ups, m_ptypeUPS4, lamc_p, D_m, ap, pi_p, 2.0);
-    setUserInfo(ups,  5);
-
-    combination(ups, m_ptypeUPS4, lamc_m, D_p, p, rho_mmp, 2.0);
-    combination(ups, m_ptypeUPS4, lamc_p, D_m, ap, rho_ppm, 2.0);
     setUserInfo(ups,  6);
+    
+    combination(ups, m_ptypeUPS4, lamc_m, D_p, p, pi_mmp, 2.0);
+    combination(ups, m_ptypeUPS4, lamc_p, D_m, ap, pi_ppm, 2.0);
+    setUserInfo(ups,  7);
+
   
     
     for(int j=0; j<ups.size(); ++j) {
@@ -240,32 +253,20 @@ cos(V.angle(P))<0.99 || l->mdstVee2().z_dist()>1. ) {
 	      if (!checkSame(all[jj],u)) ntr++;
         Particle lamc = u.child(0);
         Particle ach = u.child(1);
-        Particle dsc = u.child(1).child(0);
         double en = pStar(u, elec, posi).e();
         double p = pStar(u, elec, posi).vect().mag();
         double mass_lamc = lamc.mass();
-	      // double mass = ach.mass();
         int chu = dynamic_cast<UserInfo&>(u.userInfo()).channel();
         int chl = dynamic_cast<UserInfo&>(lamc.userInfo()).channel();
         int chach = dynamic_cast<UserInfo&>(ach.userInfo()).channel();
         
         int chdsc = -1;
         int chdt = -1;
-        int chdst = -1;
         int chlt = -1;
         
-	      double mass_dst = 0;
-	      double mass_ach = 0;
-
-      	if (ch == 4 or ch == 5) {
-             chdsc = dynamic_cast<UserInfo&>(dsc.userInfo()).channel();
-      	     mass_dst = ach.mass();
-      	     mass_ach = dsc.mass();
-      	}
-      	else{
-      	     mass_ach = ach.mass();
-      	}
-        switch(ch){
+	double mass_ach = ach.mass();
+	
+        switch(chu){
           case 1:
             chlt = chach;
             break;
@@ -276,10 +277,10 @@ cos(V.angle(P))<0.99 || l->mdstVee2().z_dist()>1. ) {
             chlt = chach;
             break;
           case 4:
-            chdst = chach;
+            chdt = chach;
             break;
           case 5:
-            chdst = chach;
+            chdt = chach;
             break;
           case 6:
             chdt = chach;
@@ -303,6 +304,7 @@ cos(V.angle(P))<0.99 || l->mdstVee2().z_dist()>1. ) {
         t1->column("chdsc", chdsc);
 
         t1->column("en", en);
+        t1->column("ecm", ecm);
         t1->column("ntr", ntr);
 
         t1->dumpData();
