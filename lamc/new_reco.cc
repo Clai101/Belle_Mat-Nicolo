@@ -233,7 +233,87 @@ cos(V.angle(P))<0.99 || l->mdstVee2().z_dist()>1. ) {
     setUserInfo(ups,  6);
   
     
+    for(int j=0; j<ups.size(); ++j) {
+        Particle u=ups[j];	
+        int ntr=0;
+        for(int jj=0; jj<all.size(); ++jj) 
+	      if (!checkSame(all[jj],u)) ntr++;
+        Particle lamc = u.child(0);
+        Particle ach = u.child(1);
+        Particle dsc = u.child(1).child(0);
+        double en = pStar(u, elec, posi).e();
+        double p = pStar(u, elec, posi).vect().mag();
+        double mass_lamc = lamc.mass();
+	      // double mass = ach.mass();
+        int chu = dynamic_cast<UserInfo&>(u.userInfo()).channel();
+        int chl = dynamic_cast<UserInfo&>(lamc.userInfo()).channel();
+        int chach = dynamic_cast<UserInfo&>(ach.userInfo()).channel();
+        
+        int chdsc = -1;
+        int chdt = -1;
+        int chdst = -1;
+        int chlt = -1;
+        
+	      double mass_dst = 0;
+	      double mass_ach = 0;
 
+      	if (ch == 4 or ch == 5) {
+             chdsc = dynamic_cast<UserInfo&>(dsc.userInfo()).channel();
+      	     mass_dst = ach.mass();
+      	     mass_ach = dsc.mass();
+      	}
+      	else{
+      	     mass_ach = ach.mass();
+      	}
+        switch(ch){
+          case 1:
+            chlt = chach;
+            break;
+          case 2:
+            chlt = chach;
+            break;
+          case 3:
+            chlt = chach;
+            break;
+          case 4:
+            chdst = chach;
+            break;
+          case 5:
+            chdst = chach;
+            break;
+          case 6:
+            chdt = chach;
+            break;
+          case 7:
+            chdt = chach;
+            break;
+        }
+
+        t1->column("ml", mass_lamc);     
+        t1->column("mach", mass_ach);
+        t1->column("mdst", mass_dst);
+
+        t1->column("p", p);
+
+        t1->column("chu", chu);     
+        t1->column("chl", chl);
+        t1->column("chlt", chlt);
+        t1->column("chdt", chdt);
+        t1->column("chdst", chdst);
+        t1->column("chdsc", chdsc);
+
+        t1->column("en", en);
+        t1->column("ntr", ntr);
+
+        t1->dumpData();
+
+
+	  *status = 1;
+    }
+    
+    if (*status==1) nwritt++;
+    
+  }
 #if defined(BELLE_NAMESPACE)
 }
 #endif
