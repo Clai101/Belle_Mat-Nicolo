@@ -8,7 +8,7 @@ namespace Belle {
   void User_reco::hist_def( void )
   { extern BelleTupleManager* BASF_Histogram;    
     t1 = BASF_Histogram->ntuple ("lam_p_k_pi",
-				 "ml mach p chu chl chlt chlt chdt chdsc en ecm ntr");
+				 "ml mach p chu chl chlt chdt chdsc en ecm ntr mrec2_r mrec2_p");
   };
   
   
@@ -96,7 +96,7 @@ namespace Belle {
     //Undetected particles
     std::vector<Particle> lamc_p, lamc_m;
     std::vector<Particle> lam, alam;
-    std::vector<Particle> ups, rho, rho_2m, rho_2p, rho4;
+    std::vector<Particle> ups, rho, rho_2m, rho_2p, rho4, rho_mmp, rho_ppm;
     std::vector<Particle> D0, aD0, D_p, D_m;
     std::vector<Particle> k_s;
     
@@ -136,7 +136,7 @@ namespace Belle {
     }
 
 
-   for(std::vector<Particle>::iterator l = alam.begin(); l!=lam.end(); ++l) {
+   for(std::vector<Particle>::iterator l = alam.begin(); l!=alam.end(); ++l) {
       HepPoint3D V(l->mdstVee2().vx(),l->mdstVee2().vy(),0);
       Vector3 P(l->px(),l->py(),0);
       V=V-ip_position;
@@ -145,7 +145,7 @@ namespace Belle {
       if (l->child(0).pType().mass()>l->child(1).pType().mass()) p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(0).mdstCharged()));
       else p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(1).mdstCharged()));                               
       if (abs(l->mass()-1.1157)>0.01 || l->mdstVee2().z_dist()>1. || p_id<0.6 ) {
-        lam.erase(l); --l;
+        alam.erase(l); --l;
       }
     }
 
@@ -216,6 +216,11 @@ namespace Belle {
     setUserInfo(lamc_m,  4);
 
     /*
+    Sigma_c
+    */
+
+
+    /*
     Epsilon 4 pi
     */
 
@@ -226,7 +231,7 @@ namespace Belle {
     setUserInfo(ups, 2);
 
     combination(ups, m_ptypeUPS4, lamc_p, lamc_m, rho4, 2.0);
-    setUserInfo(ups, 3);chl chlt chlt chdt chdst chdsc en ntr
+    setUserInfo(ups, 3);
 
     combination(ups, m_ptypeUPS4, lamc_m, D0, p, 2.0);
     combination(ups, m_ptypeUPS4, lamc_p, aD0, ap, 2.0);
@@ -250,7 +255,7 @@ namespace Belle {
     for(int j=0; j<ups.size(); ++j) 
     {
       Particle u=ups[j];	
-      int ntr=0;
+      short ntr=0;
       for(int jj=0; jj<all.size(); ++jj) 
       if (!checkSame(all[jj],u)) ntr++;
       Particle lamc = u.child(0);
@@ -258,45 +263,37 @@ namespace Belle {
       double en = pStar(u, elec, posi).e();
       double p = pStar(u, elec, posi).vect().mag();
       double mass_lamc = lamc.mass();
-      
 
-      int chu = dynamic_cast<UserInfo&>(u.userInfo()).channel();
-      int chl = dynamic_cast<UserInfo&>(lamc.userInfo()).channel();
-      int chach = dynamic_cast<UserInfo&>(ach.userInfo()).channel();
+
+      short chu = dynamic_cast<UserInfo&>(u.userInfo()).channel();
+      short chl = dynamic_cast<UserInfo&>(lamc.userInfo()).channel();
+      short chach = dynamic_cast<UserInfo&>(ach.userInfo()).channel();
       
-      int chdt = -1;
-      int chlt = -1;
+      short chdt = -1;
+      short chlt = -1;
       
       double mass_ach = ach.mass();
 
-      VectorL ups = VectorL(elec + posi, 0, 0, elec - posi); 
+      VectorL beam = VectorL(elec + posi, 0, 0, elec - posi); 
       VectorL prec = pStar(u, elec, posi);
-      VectorL mis = ups - prec;
+      VectorL mis = beam - prec;
       double mrec2 = mis.m2();
+
+      VectorL pl = pStar(lamc, elec, posi);
+      VectorL mis2 = beam - (prec - pl);
+      double mrec2_2 = mis2.m2();
 
       switch(chu){
         case 1:
-          for (short i = 1; i < 2; i++) {
-            ups = ups - pStar(u.chird(i), elec, posi)
-          }
           chlt = chach;
           break;
         case 2:
-          for (short i = 1; i < 3; i++) {
-            ups = ups - pStar(u.chird(i), elec, posi)
-          }
           chlt = chach;
           break;
         case 3:
-          for (short i = 1; i < 3; i++) {
-            ups = ups - pStar(u.chird(i), elec, posi)
-          }
           chlt = chach;
           break;
         case 4:
-          for (short i = 1; i < 3; i++) {
-            ups = ups - pStar(u.chird(i), elec, posi)
-          }
           chdt = chach;
           break;
         case 5:
@@ -309,11 +306,9 @@ namespace Belle {
           chdt = chach;
           break;
       }
-      double mrec_l2 = ups.m2()
 
       t1->column("ml", mass_lamc);     
       t1->column("mach", mass_ach);
-      t1->column("mdst", mass_dst);
 
       t1->column("p", p);
 
@@ -321,12 +316,13 @@ namespace Belle {
       t1->column("chl", chl);
       t1->column("chlt", chlt);
       t1->column("chdt", chdt);
-      t1->column("chdst", chdst);
-      t1->column("chdsc", chdsc);
 
       t1->column("en", en);
       t1->column("ecm", ecm);
       t1->column("ntr", ntr);
+
+      t1->column("mrec2_r", mrec2);
+      t1->column("mrec2_p", mrec2_2);
 
       t1->dumpData();
 

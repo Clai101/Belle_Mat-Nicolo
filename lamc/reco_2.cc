@@ -260,6 +260,7 @@ namespace Belle {
       double mass_lamc = lamc.mass();
       
 
+
       int chu = dynamic_cast<UserInfo&>(u.userInfo()).channel();
       int chl = dynamic_cast<UserInfo&>(lamc.userInfo()).channel();
       int chach = dynamic_cast<UserInfo&>(ach.userInfo()).channel();
@@ -269,34 +270,17 @@ namespace Belle {
       
       double mass_ach = ach.mass();
 
-      VectorL ups = VectorL(elec + posi, 0, 0, elec - posi); 
-      VectorL prec = pStar(u, elec, posi);
-      VectorL mis = ups - prec;
-      double mrec2 = mis.m2();
-
       switch(chu){
         case 1:
-          for (short i = 1; i < 2; i++) {
-            ups = ups - pStar(u.chird(i), elec, posi)
-          }
           chlt = chach;
           break;
         case 2:
-          for (short i = 1; i < 3; i++) {
-            ups = ups - pStar(u.chird(i), elec, posi)
-          }
           chlt = chach;
           break;
         case 3:
-          for (short i = 1; i < 3; i++) {
-            ups = ups - pStar(u.chird(i), elec, posi)
-          }
           chlt = chach;
           break;
         case 4:
-          for (short i = 1; i < 3; i++) {
-            ups = ups - pStar(u.chird(i), elec, posi)
-          }
           chdt = chach;
           break;
         case 5:
@@ -309,7 +293,6 @@ namespace Belle {
           chdt = chach;
           break;
       }
-      double mrec_l2 = ups.m2()
 
       t1->column("ml", mass_lamc);     
       t1->column("mach", mass_ach);
