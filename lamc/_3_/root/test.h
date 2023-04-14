@@ -21,8 +21,8 @@
 #include "TFrame.h"
 #include "TBenchmark.h"
 #include "TSystem.h"
-
-
+#include "TDirectory.h"
+#include "TH2S.h"
 
 
 namespace fs = std::filesystem;

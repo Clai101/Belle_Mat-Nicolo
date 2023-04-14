@@ -55,4 +55,7 @@ test.o: test.cc test.h /usr/include/root/TCanvas.h \
  /usr/include/root/TColor.h /usr/include/root/TBenchmark.h \
  /usr/include/root/TStopwatch.h /usr/include/root/TSystem.h \
  /usr/include/root/TInetAddress.h /usr/include/root/TTimer.h \
- /usr/include/root/TSysEvtHandler.h /usr/include/root/TTime.h
+ /usr/include/root/TSysEvtHandler.h /usr/include/root/TTime.h \
+ /usr/include/root/TDirectory.h /usr/include/root/TH2S.h \
+ /usr/include/root/TH2.h /usr/include/root/TMatrixFBasefwd.h \
+ /usr/include/root/TMatrixDBasefwd.h
