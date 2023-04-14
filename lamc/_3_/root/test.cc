@@ -1,40 +1,33 @@
-#include <set>
-#include <string>
-#include <vector>
-#include <sstream>
-#include <iostream>
-#include <filesystem>
-
-namespace fs = std::filesystem;
-
-std::vector<std::string> split (const std::string &s, char delim) {
-    std::vector<std::string> result;
-    std::stringstream ss (s);
-    std::string item;
-
-    while (getline (ss, item, delim)) {
-        result.push_back (item);
-    }
-
-    return result;
-}
+#include<test.h>
 
 int main() {
 
-
-
+  
   std::string path_name = fs::current_path();
+  std::vector<std::string> names;
+  std::string ext = ".root";
 
-  //--- filenames are unique so we can use a set
-  std::set<fs::path> sorted_by_name;
+  TCanvas *c1 = new TCanvas("c1", "c1", 800, 600);
+	TH1F *hist = new TH1F("hist", "", 100, 8, 12);
 
-  for (auto &entry : fs::directory_iterator(path_name))
-    sorted_by_name.insert(entry.path());
+  for (auto &entry : fs::directory_iterator(path_name)){
+    names.push_back(entry.path().filename().c_str()); 
+  }
 
-  //--- print the files sorted by filename
-  for (auto &filename : sorted_by_name)
-    std::cout << filename.c_str() << std::endl;
+  for (auto iter {names.begin()}; iter != names.end(); ++iter) {
+    std::string  fname = (*iter).c_str();
+    if (fname.find(ext) != std::string::npos){
+      TFile *input = new TFile(fname, "read");
+      TTree *tree = (TTree*)input->Get("h1");
+      
+      TH1F *temp = new TH1F("temp", "", 100, 8, 12);
+      tree->Draw("en >> temp", "p < 0.5 && en > 8 && ch == 2 && abs(ml - 2.28646) < 0.015 && abs(md - 2.28646) < 0.015 && ntr == 0");
+      
+      hist->Add(temp, 1); // добавляем данные temp с коэффициентом 1
+    }
+	}
 
-
+  hist->Draw();
+  
   return 0;
 }
