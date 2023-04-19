@@ -1,0 +1,4 @@
+ls /opt/belle
+
+echo $BELLE_TOP_DIR/src
+find $BELLE_TOP$

@@ -8,7 +8,7 @@ namespace Belle {
   void User_reco::hist_def( void )
   { extern BelleTupleManager* BASF_Histogram;    
     t1 = BASF_Histogram->ntuple ("lam_p_k_pi",
-				 "ml mach p chu chl chlt chlt chdt chdsc en ecm ntr");
+				 "ml mach p chu chl chlt chdt chdsc en ecm ntr mrec2_r mrec2_p");
   };
   
   
@@ -96,7 +96,7 @@ namespace Belle {
     //Undetected particles
     std::vector<Particle> lamc_p, lamc_m;
     std::vector<Particle> lam, alam;
-    std::vector<Particle> ups, rho, rho_2m, rho_2p, rho4;
+    std::vector<Particle> ups, rho, rho_2m, rho_2p, rho4, rho_ppm, rho_mmp;
     std::vector<Particle> D0, aD0, D_p, D_m;
     std::vector<Particle> k_s;
     
@@ -111,18 +111,18 @@ namespace Belle {
     makeKs(k_s);
     makeLambda(lam,alam);
 
-    for(std::vector<Particle>::iterator l = k_s.begin(); l!=k_s.end(); ++l) {
-      HepPoint3D V(l->mdstVee2().vx(),l->mdstVee2().vy(),0);
-      Vector3 P(l->px(),l->py(),0);
-      V=V-ip_position;
-      V.setZ(0.);
-      if (abs(l->mass()-0.4977)>0.03 || V.perp()<0.1 ||
-      cos(V.angle(P))<0.99 || l->mdstVee2().z_dist()>1. ) {
-        k_s.erase(l); --l; continue;
-      }
+  for(std::vector<Particle>::iterator l = k_s.begin(); l!=k_s.end(); ++l) {
+    HepPoint3D V(l->mdstVee2().vx(),l->mdstVee2().vy(),0);
+    Vector3 P(l->px(),l->py(),0);
+    V=V-ip_position;
+    V.setZ(0.);
+    if (abs(l->mass()-0.4977)>0.03 || V.perp()<0.1 ||
+    cos(V.angle(P))<0.99 || l->mdstVee2().z_dist()>1.) {
+      k_s.erase(l); --l; continue;
     }
+  }
 
-    for(std::vector<Particle>::iterator l = lam.begin(); l!=lam.end(); ++l) {
+   for(std::vector<Particle>::iterator l = lam.begin(); l!=lam.end(); ++l) {
       HepPoint3D V(l->mdstVee2().vx(),l->mdstVee2().vy(),0);
       Vector3 P(l->px(),l->py(),0);
       V=V-ip_position;
@@ -136,7 +136,7 @@ namespace Belle {
     }
 
 
-    for(std::vector<Particle>::iterator l = alam.begin(); l!=lam.end(); ++l) {
+   for(std::vector<Particle>::iterator l = alam.begin(); l!=alam.end(); ++l) {
       HepPoint3D V(l->mdstVee2().vx(),l->mdstVee2().vy(),0);
       Vector3 P(l->px(),l->py(),0);
       V=V-ip_position;
@@ -144,8 +144,8 @@ namespace Belle {
       double p_id;
       if (l->child(0).pType().mass()>l->child(1).pType().mass()) p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(0).mdstCharged()));
       else p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(1).mdstCharged()));                               
-      if (abs(l->mass()-1.1157)>0.01 || l->mdstVee2().z_dist()>1. || p_id<0.6) {
-        lam.erase(l); --l;
+      if (abs(l->mass()-1.1157)>0.01 || l->mdstVee2().z_dist()>1. || p_id<0.6 ) {
+        alam.erase(l); --l;
       }
     }
 
@@ -191,6 +191,18 @@ namespace Belle {
     setUserInfo(D_m, 12);
     setUserInfo(D_p, 12);
 
+
+    //добавить создание сигм, проверить тип, добавить канал в туполь, хотя скорее надо систему сделать для отличия от лямбды
+    combination(sigmac_pp, m_ptype, lamc_p, pi_p, 0.1);
+    combination(sigmac_mm, m_ptype, lamc_m, pi_m, 0.1);
+    setUserInfo(sigmac_0,  11);
+    setUserInfo(asigmac_0,  11);
+
+    combination(sigmac0, m_ptype, lamc_p, pi_m, 0.1);
+    combination(asigmac0, m_ptype, lamc_m, pi_p, 0.1);
+    setUserInfo(sigmac0,  12);
+    setUserInfo(asigmac0,  12);
+
     /*
     Lambda mesons
     */
@@ -216,6 +228,11 @@ namespace Belle {
     setUserInfo(lamc_m,  4);
 
     /*
+    Sigma_c
+    */
+
+
+    /*
     Epsilon 4 pi
     */
 
@@ -226,7 +243,19 @@ namespace Belle {
     setUserInfo(ups, 2);
 
     combination(ups, m_ptypeUPS4, lamc_p, lamc_m, rho4, 2.0);
-    setUserInfo(ups, 3);chl chlt chlt chdt chdst chdsc en ntr
+    setUserInfo(ups, 3);
+    
+    combination(ups, m_ptypeUPS4, sigmac_pp, sigmac_mm, 2.0);
+    setUserInfo(ups, 11);
+
+    combination(ups, m_ptypeUPS4, sigmac0, asigmac0, 2.0);
+    setUserInfo(ups, 12);
+
+    combination(ups, m_ptypeUPS4, sigmac_pp, sigmac_mm, rho, 2.0);
+    setUserInfo(ups, 13);
+
+    combination(ups, m_ptypeUPS4, sigmac0, asigmac0, rho, 2.0);
+    setUserInfo(ups, 14);
 
     combination(ups, m_ptypeUPS4, lamc_m, D0, p, 2.0);
     combination(ups, m_ptypeUPS4, lamc_p, aD0, ap, 2.0);
@@ -243,77 +272,100 @@ namespace Belle {
     combination(ups, m_ptypeUPS4, lamc_m, D_p, p, rho_mmp, 2.0);
     combination(ups, m_ptypeUPS4, lamc_p, D_m, ap, rho_ppm, 2.0);
     setUserInfo(ups,  7);
-
+  
+    combination(ups, m_ptypeUPS4, sigmac_mm, D0, p, pi_p, 2.0);
+    combination(ups, m_ptypeUPS4, sigmac_pp, aD0, ap, pi_m, 2.0);
+    setUserInfo(ups, 15);
+    
+    combination(ups, m_ptypeUPS4, sigmac_mm, D_p, p, 2.0);
+    combination(ups, m_ptypeUPS4, sigmac_pp, D_m, ap, 2.0);
+    setUserInfo(ups,  16);
+    
+    combination(ups, m_ptypeUPS4, sigmac_mm, D_p, p, rho, 2.0);
+    combination(ups, m_ptypeUPS4, sigmac_pp, D_m, ap, rho, 2.0);
+    setUserInfo(ups,  17);
   
     
-    for(int j=0; j<ups.size(); ++j) {
-        Particle u=ups[j];	
-        int ntr=0;
-        for(int jj=0; jj<all.size(); ++jj) 
-	      if (!checkSame(all[jj],u)) ntr++;
-        Particle lamc = u.child(0);
-        Particle ach = u.child(1);
-        double en = pStar(u, elec, posi).e();
-        double p = pStar(u, elec, posi).vect().mag();
-        double mass_lamc = lamc.mass();
-        int chu = dynamic_cast<UserInfo&>(u.userInfo()).channel();
-        int chl = dynamic_cast<UserInfo&>(lamc.userInfo()).channel();
-        int chach = dynamic_cast<UserInfo&>(ach.userInfo()).channel();
-
-        int chdt = -1;
-        int chlt = -1;
-        
-	  double mass_ach = ach.mass();
-	
-        switch(chu){
-          case 1:
-            chlt = chach;
-            break;
-          case 2:
-            chlt = chach;
-            break;
-          case 3:
-            chlt = chach;
-            break;
-          case 4:
-            chdt = chach;
-            break;
-          case 5:
-            chdt = chach;
-            break;
-          case 6:
-            chdt = chach;
-            break;
-          case 7:
-            chdt = chach;
-            break;
-        }
-
-        t1->column("ml", mass_lamc);     
-        t1->column("mach", mass_ach);
-        t1->column("mdst", mass_dst);
-
-        t1->column("p", p);
-
-        t1->column("chu", chu);     
-        t1->column("chl", chl);
-        t1->column("chlt", chlt);
-        t1->column("chdt", chdt);
-        t1->column("chdst", chdst);
-        t1->column("chdsc", chdsc);
-
-        t1->column("en", en);
-        t1->column("ecm", ecm);
-        t1->column("ntr", ntr);
-
-        t1->dumpData();
+    for(int j=0; j<ups.size(); ++j) 
+    {
+      Particle u=ups[j];	
+      short ntr=0;
+      for(int jj=0; jj<all.size(); ++jj) 
+      if (!checkSame(all[jj],u)) ntr++;
+      Particle lamc = u.child(0);
+      Particle ach = u.child(1);
+      double en = pStar(u, elec, posi).e();
+      double p = pStar(u, elec, posi).vect().mag();
+      double mass_lamc = lamc.mass();
 
 
-	  *status = 1;
-    }
-    
-    if (*status==1) nwritt++;
-    
+      short chu = dynamic_cast<UserInfo&>(u.userInfo()).channel();
+      short chl = dynamic_cast<UserInfo&>(lamc.userInfo()).channel();
+      short chach = dynamic_cast<UserInfo&>(ach.userInfo()).channel();
+      
+      short chdt = -1;
+      short chlt = -1;
+      
+      double mass_ach = ach.mass();
+
+      VectorL beam = VectorL(elec + posi, 0, 0, elec - posi); 
+      VectorL prec = pStar(u, elec, posi);
+      VectorL mis = beam - prec;
+      double mrec2 = mis.m2();
+
+      VectorL pl = pStar(lamc, elec, posi);
+      VectorL mis2 = beam - (prec - pl);
+      double mrec2_2 = mis2.m2();
+
+      switch(chu){
+        case 1:
+          chlt = chach;
+          break;
+        case 2:
+          chlt = chach;
+          break;
+        case 3:
+          chlt = chach;
+          break;
+        case 4:
+          chdt = chach;
+          break;
+        case 5:
+          chdt = chach;
+          break;
+        case 6:
+          chdt = chach;
+          break;
+        case 7:
+          chdt = chach;
+          break;
+      }
+
+      t1->column("ml", mass_lamc);     
+      t1->column("mach", mass_ach);
+
+      t1->column("p", p);
+
+      t1->column("chu", chu);     
+      t1->column("chl", chl);
+      t1->column("chlt", chlt);
+      t1->column("chdt", chdt);
+
+      t1->column("en", en);
+      t1->column("ecm", ecm);
+      t1->column("ntr", ntr);
+
+      t1->column("mrec2_r", mrec2);
+      t1->column("mrec2_p", mrec2_2);
+
+      t1->dumpData();
+
+
+  *status = 1;
+  }
+  
+  if (*status==1) nwritt++;
+  
   }
 #if defined(BELLE_NAMESPACE)
 }
