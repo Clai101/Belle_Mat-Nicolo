@@ -38,6 +38,10 @@ int main(int argc, char *argv[]) {
       down = -50;
       up = 50;
     }
+    if (_ax.find("ecm") != std::string::npos and _ax.find("en") != std::string::npos){
+      down = down - 10.5;
+      up = up - 10.5;
+    }
     if (_ax.find("abs") != std::string::npos){
       if (abs(up) > abs(down)){
         up = abs(up);
@@ -73,8 +77,8 @@ int main(int argc, char *argv[]) {
         }
         else{
           //tree->Draw("en >> temp", "p < 0.5 && en > 8 && chu == 5 && abs(ml - 2.28646) < 0.015 && abs(mach - 2.28646) < 0.015 && ntr == 0");
-          //tree->Draw("en >> temp", "p < 0.5 && en > 8 && chu == 5 && abs(ml - 2.28646) < 0.015 && abs(mach - 1.86484) < 0.015 && ntr == 0");
-          tree->Draw("en >> temp", "p < 0.5 && en > 8 && chu == 7 && abs(ml - 2.28646) < 0.015 && abs(mach - 1.86966) < 0.015 && ntr == 0");
+          tree->Draw("en >> temp", "p < 0.08 && en > 8 && chu == 5 && abs(ml - 2.28646) < 0.015 && abs(mach - 1.86484) < 0.015 && ntr == 0");
+          //tree->Draw("en - ecm>> temp", "p < 0.5 && en > 8 && chu == 7 && abs(ml - 2.28646) < 0.015 && abs(mach - 1.86966) < 0.015 && ntr == 0");
           //tree->Draw("abs(mrec2_r - mrec2_p) >> temp", " ntr == 0");
         }
       
