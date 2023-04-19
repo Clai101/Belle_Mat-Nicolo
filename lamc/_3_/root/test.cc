@@ -21,10 +21,10 @@ int main() {
       TTree *tree = (TTree*)input->Get("h1");
       
       TH1F *temp = new TH1F("temp", "", 100, 8, 12);
-      //tree->Draw("en >> temp", "p < 0.5 && en > 8 && chu == 5 && abs(ml - 2.28646) < 0.015 && abs(mach - 2.28646) < 0.015 && ntr == 0");
+      //tree->Draw("en >> temp", "p < 0.5 2&& en > 8 && chu == 5 && abs(ml - 2.28646) < 0.015 && abs(mach - 2.8646) < 0.015 && ntr == 0");
       //tree->Draw("en >> temp", "p < 0.5 && en > 8 && chu == 5 && abs(ml - 2.28646) < 0.015 && abs(mach - 1.86484) < 0.015 && ntr == 0");
-      tree->Draw("en >> temp", "p < 0.5 && en > 8 && chu == 7 && abs(ml - 2.28646) < 0.015 && abs(mach - 1.86966) < 0.015 && ntr == 0");
-      //tree->Draw("en >> temp", "chu == 5");
+      //tree->Draw("en >> temp", "p < 0.5 && en > 8 && chu == 7 && abs(ml - 2.28646) < 0.015 && abs(mach - 1.86966) < 0.015 && ntr == 0");
+      tree->Draw("en >> temp", "chu == 5");
       
       hist->Add(temp, 1); // добавляем данные temp с коэффициентом 1
     }
@@ -32,7 +32,7 @@ int main() {
 	
 	//hist->GetYaxis()->SetRangeUser(0, 100);
   hist->Draw();
-  c1->Print("../results/hist.root");
+  c1->Print("../results/hist_cut4.root");
   
   return 0;
 }

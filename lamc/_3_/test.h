@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <sstream>
+#include <stdlib.h>  
 #include <iostream>
 #include <filesystem>
 #include "TCanvas.h"

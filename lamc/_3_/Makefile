@@ -8,17 +8,17 @@ LIBS=-lm -lstdc++ $(ROOT_LIB) -L/usr/lib64
 
 OPTFLAGS= -pipe -Wall -fPIC -std=c++11
 
-all: test.exe 
+all: test
 
-test.exe: test.o 
-	gcc $(OPTFLAGS)  $(LIBS)  $^ -o  $@
-
+test: test.o 
+	gcc $(OPTFLAGS) $(LIBS) $^ -o $@
 
 %.o: %.cc
 	gcc -c $(OPTFLAGS) $(DEBUG) -MMD $(INC) -o $@ $<
 
 clean:
-	-rm *.o *.d *.so *.a test*.root *.exe *_dict.cc
+	-rm *.o *.d *.so *.a test*.root test
+
 .SUFFIXES:
 
 include $(wildcard *.d)
