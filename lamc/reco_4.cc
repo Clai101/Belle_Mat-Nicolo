@@ -8,7 +8,7 @@ namespace Belle {
   void User_reco::hist_def( void )
   { extern BelleTupleManager* BASF_Histogram;    
     t1 = BASF_Histogram->ntuple ("sigma",
-				 "ml mach p chu chl chlt chdt chdsc en ecm ntr mrec2_r mrec2_p");
+				 "ml ms mach p chu chl chlt chdt chdsc en ecm ntr mrec2_r mrec2_p");
     t2 = BASF_Histogram->ntuple ("lam_lept",
       "ml mach p chu chl chlt chdt chdsc en ecm ntr mrec2_r mrec2_p");
   };
@@ -241,13 +241,13 @@ namespace Belle {
     Sigma_c
     */
    
-    combination(sigc_pp, m_ptypeSIGC0, lamc_p, pi_p, );
-    combination(sigc_mm, m_ptypeASIGC0, lamc_m, pi_m, );
+    combination(sigc_pp, m_ptypeSIGC0, lamc_p, pi_p, 0.5);
+    combination(sigc_mm, m_ptypeASIGC0, lamc_m, pi_m, 0.5);
     setUserInfo(sigc_pp,  11);
-    setUserInfo(asigc_mm,  11);
+    setUserInfo(sigc_mm,  11);
 
-    combination(sigc0, m_ptypeSIGC0, lamc_p, pi_m, 0.1);
-    combination(asigc0, m_ptypeASIGC0, lamc_m, pi_p, 0.1);
+    combination(sigc0, m_ptypeSIGC0, lamc_p, pi_m, 0.5);
+    combination(asigc0, m_ptypeASIGC0, lamc_m, pi_p, 0.5);
     setUserInfo(sigc0,  12);
     setUserInfo(asigc0,  12);
 
@@ -318,7 +318,8 @@ namespace Belle {
       Particle ach = u.child(1);
       double en = pStar(u, elec, posi).e();
       double p = pStar(u, elec, posi).vect().mag();
-      double mass_lamc = lamc.mass();
+      double mass_lamc = 0;
+      double mass_sigm = 0;
 
 
       short chu = dynamic_cast<UserInfo&>(u.userInfo()).channel();
@@ -335,16 +336,19 @@ namespace Belle {
       VectorL mis = beam - prec;
       double mrec2 = mis.m2();
 
-      VectorL pl = lamc.p();
+      VectorL pl = ctag.p();
       VectorL mis2 = beam - (prec - pl);
       double mrec2_2 = mis2.m2();
 
       if (chu > 10){
-        lam = ctag.child(0);
+        Particle lam = ctag.child(0);
         chl = dynamic_cast<UserInfo&>(lam.userInfo()).channel();
+        mass_lamc = lam.mass();
+        mass_sigm = ctag.mass();
       }
       else {
         short chl = dynamic_cast<UserInfo&>(ctag.userInfo()).channel();
+        mass_lamc = ctag.mass();
       }
 
       if (chu <= 3 or (chu >= 11 and chu < 15)){
@@ -372,6 +376,7 @@ namespace Belle {
         t2->dumpData();
       }
       else{
+        t1->column("ms", mass_sigm);
         t1->column("ml", mass_lamc);     
         t1->column("mach", mass_ach);
         t1->column("p", p);
