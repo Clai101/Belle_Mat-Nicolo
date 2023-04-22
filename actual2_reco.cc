@@ -225,61 +225,70 @@ namespace Belle {
     setUserInfo(lamct_p,  4);
     setUserInfo(lamct_m,  4);
 
-
-    /*
-    semileptonics mode
-    */
-
-    combination(lamc_p, m_ptypeLAMC, lam, e_p);
-    combination(lamc_m, m_ptypeLAMC, alam, e_m);
-    setUserInfo(lamc_p,  10);
-    setUserInfo(lamc_m,  10);
-
-    combination(lamc_p, m_ptypeLAMC, lam, mu_p);
-    combination(lamc_m, m_ptypeLAMC, alam, mu_m);
-    setUserInfo(lamc_p,  11);
-    setUserInfo(lamc_m,  11);
-
-    combination(lamc_p, m_ptypeLAMC, lam, pi_p, 0.1);
-    combination(lamc_m, m_ptypeLAMC, alam, pi_m, 0.1);
-    setUserInfo(lamc_p,  12);
-    setUserInfo(lamc_m,  12);
-
     /*
     Sigma_c
     */
    
-    combination(sigc_pp, m_ptypeSIGC0, lamc_p, pi_p, 0.5);
-    combination(sigc_mm, m_ptypeSIGC0, lamc_m, pi_m, 0.5);
+    combination(sigc_pp, m_ptypeSIGC0, lam, pi_p, e_p);
+    combination(sigc_mm, m_ptypeSIGC0, alam, pi_m, e_m);
     setUserInfo(sigc_pp,  11);
     setUserInfo(sigc_mm,  11);
 
-    combination(sigc0, m_ptypeSIGC0, lamc_p, pi_m, 0.5);
-    combination(asigc0, m_ptypeSIGC0, lamc_m, pi_p, 0.5);
+    combination(sigc_pp, m_ptypeSIGC0, lam, pi_p, mu_p);
+    combination(sigc_mm, m_ptypeSIGC0, alam, pi_m, mu_m);
+    setUserInfo(sigc_pp,  21);
+    setUserInfo(sigc_mm,  21);
+
+    combination(sigc0, m_ptypeSIGC0, lamc_p, pi_m, e_p);
+    combination(asigc0, m_ptypeSIGC0, lamc_m, pi_p, e_m);
     setUserInfo(sigc0,  12);
     setUserInfo(asigc0,  12);
+
+    combination(sigc0, m_ptypeSIGC0, lamc_p, pi_m, mu_p);
+    combination(asigc0, m_ptypeSIGC0, lamc_m, pi_p, mu_m);
+    setUserInfo(sigc0,  22);
+    setUserInfo(asigc0,  22);
 
 
     /*
     elec posi
     */
 
-    combination(ups, m_ptypeUPS4, lamc_p, lamct_m);
-    combination(ups, m_ptypeUPS4, lamc_m, lamct_p);
+    combination(ups, m_ptypeUPS4, lam, lamct_m, e_p); 
+    combination(ups, m_ptypeUPS4, alam, lamct_p, e_m);
     setUserInfo(ups, 1);
 
-    combination(ups, m_ptypeUPS4, lamc_p, lamct_m, rho);
-    combination(ups, m_ptypeUPS4, lamc_m, lamct_p, rho);
+    combination(ups, m_ptypeUPS4, lam, lamct_m, mu_p);
+    combination(ups, m_ptypeUPS4, alam, lamct_p, mu_m);
+    setUserInfo(ups, 21);
+
+    combination(ups, m_ptypeUPS4, lam, lamct_m, rho, e_p);
+    combination(ups, m_ptypeUPS4, alam, lamct_p, rho, e_m);
     setUserInfo(ups, 2);
 
-    combination(ups, m_ptypeUPS4, lamc_p, lamct_m, rho4);
-    combination(ups, m_ptypeUPS4, lamc_m, lamct_p, rho4);
+    combination(ups, m_ptypeUPS4, lam, lamct_m, rho, mu_p);
+    combination(ups, m_ptypeUPS4, alam, lamct_p, rho, mu_m);
+    setUserInfo(ups, 22);
+
+    combination(ups, m_ptypeUPS4, lam, lamct_m, rho4, e_p);
+    combination(ups, m_ptypeUPS4, alam, lamct_p, rho4, e_m);
     setUserInfo(ups, 3);
 
-    combination(ups, m_ptypeUPS4, lamc_m, D0, p);
-    combination(ups, m_ptypeUPS4, lamc_p, aD0, ap);
+    combination(ups, m_ptypeUPS4, lam, lamct_m, rho4, mu_p);
+    combination(ups, m_ptypeUPS4, alam, lamct_p, rho4, mu_m);
+    setUserInfo(ups, 23);
+
+    combination(ups, m_ptypeUPS4, alam, D0, p, e_m);
+    combination(ups, m_ptypeUPS4, lam, aD0, ap, e_p);
     setUserInfo(ups, 4);
-  
+
+    combination(ups, m_ptypeUPS4, alam, D0, p, mu_m);
+    combination(ups, m_ptypeUPS4, lam, aD0, ap, mu_p);
+    setUserInfo(ups, 24);
+    
+    /*
+    эти каналы уже не пройдут такое переписывание, так как у нас тут выйдет 5 частиц, программа не одобрит
+    */
     combination(ups, m_ptypeUPS4, lamc_m, D0, p, rho);
     combination(ups, m_ptypeUPS4, lamc_p, aD0, ap, rho);
     setUserInfo(ups, 5);
@@ -295,6 +304,8 @@ namespace Belle {
     /*
     elec posi through sigmac
     */
+
+    //тут все изменения по сравнению с actual_reco заложены в combination(sigc...)
 
     combination(ups, m_ptypeUPS4, sigc_pp, lamc_m, pi_m);
     combination(ups, m_ptypeUPS4, sigc_mm, lamc_p, pi_p);
