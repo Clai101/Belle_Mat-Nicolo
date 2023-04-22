@@ -242,12 +242,12 @@ namespace Belle {
     */
    
     combination(sigc_pp, m_ptypeSIGC0, lamc_p, pi_p, 0.5);
-    combination(sigc_mm, m_ptypeASIGC0, lamc_m, pi_m, 0.5);
+    combination(sigc_mm, m_ptypeSIGC0, lamc_m, pi_m, 0.5);
     setUserInfo(sigc_pp,  11);
     setUserInfo(sigc_mm,  11);
 
     combination(sigc0, m_ptypeSIGC0, lamc_p, pi_m, 0.5);
-    combination(asigc0, m_ptypeASIGC0, lamc_m, pi_p, 0.5);
+    combination(asigc0, m_ptypeSIGC0, lamc_m, pi_p, 0.5);
     setUserInfo(sigc0,  12);
     setUserInfo(asigc0,  12);
 
