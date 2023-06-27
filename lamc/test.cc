@@ -8,7 +8,7 @@ namespace Belle {
   void User_reco::hist_def( void )
   { extern BelleTupleManager* BASF_Histogram;    
     t1 = BASF_Histogram->ntuple ("sigma",
-         "m_lamc m_sigm mass_ach momentum cha_ups cha_tagg cha_l_tag cha_d_tag energy ecm ntr mrec2_n mrec2_s mrec2_l");
+         "m_lamc m_sigm mass_ach momentum cha_ups cha_tagg cha_lam_tag cha_d_tag energy ecm ntr mrec2_n mrec2_s mrec2_l");
     t2 = BASF_Histogram->ntuple ("lam_lept",
       "m_lamc mass_ach momentum cha_ups cha_tagg cha_l_tag cha_d_tag energy ecm ntr mrec2_n mrec2_l");
   };
@@ -355,7 +355,7 @@ namespace Belle {
       double mrec2 = mis.m2();
       double mrec2_l = 0;
 
-      if (11 <= channel){
+      if (11 <= cl){
         VectorL p_l = charm_tagging.child(0).p();
         VectorL mis2 = beam - (prec - p_l);
         mrec2_l = mis2.m2();

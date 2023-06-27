@@ -8,9 +8,9 @@ namespace Belle {
   void User_reco::hist_def( void )
   { extern BelleTupleManager* BASF_Histogram;    
     t1 = BASF_Histogram->ntuple ("sigma",
-         "m_lamc m_sigm mass_ach momentum cha_ups cha_tagg cha_l_tag cha_d_tag energy ecm ntr mrec2_n mrec2_s mrec2_l");
+         "m_lamc m_sigm mass_ach momentum channel_ups channel_tagging channel_lam_tag channel_d_tag energy ecm ntr mrec2_r mrec2_p");
     t2 = BASF_Histogram->ntuple ("lam_lept",
-      "m_lamc mass_ach momentum cha_ups cha_tagg cha_l_tag cha_d_tag energy ecm ntr mrec2_n mrec2_l");
+      "m_lamc mass_ach momentum channel_ups channel_tagging channel_lam_tag channel_d_tag energy ecm ntr mrec2_r mrec2_p");
   };
   
   
@@ -340,6 +340,7 @@ namespace Belle {
       double m_lamc = 0;
       double m_sigm = 0;
 
+
       short channel = dynamic_cast<UserInfo&>(u.userInfo()).channel();
       short chach = dynamic_cast<UserInfo&>(ach.userInfo()).channel();
       
@@ -349,21 +350,20 @@ namespace Belle {
       
       double mass_ach = ach.mass();
 
-      VectorL beam = VectorL(elec - posi, 0, 0, elec + posi); 
+      /*
+      Почему-то этот кусок работает неправильно
+      */
+
+      VectorL beam = VectorL(elec + posi, 0, 0, elec - posi); 
       VectorL prec = u.p();
       VectorL mis = beam - prec;
       double mrec2 = mis.m2();
-      double mrec2_l = 0;
 
-      if (11 <= channel){
-        VectorL p_l = charm_tagging.child(0).p();
-        VectorL mis2 = beam - (prec - p_l);
-        mrec2_l = mis2.m2();
-      }         
       VectorL pl = charm_tagging.p();
       VectorL mis2 = beam - (prec - pl);
       double mrec2_2 = mis2.m2();
 
+      //
 
       if (channel > 10){
         Particle lam = charm_tagging.child(0);
@@ -388,15 +388,15 @@ namespace Belle {
         t2->column("m_lamc", m_lamc);     
         t2->column("mass_ach", mass_ach);
         t2->column("momentum", momentum);
-        t2->column("cha_ups", channel);     
-        t2->column("cha_tagg", channel_tagging);
-        t2->column("cha_l_tag", channel_lam_tag);
-        t2->column("cha_d_tag", channel_d_tag);
+        t2->column("channel_ups", channel);     
+        t2->column("channel_tagging", channel_tagging);
+        t2->column("channel_lam_tag", channel_lam_tag);
+        t2->column("channel_d_tag", channel_d_tag);
         t2->column("energy", energy);
         t2->column("ecm", ecm);
         t2->column("ntr", ntr);
-        t2->column("mrec2_n", mrec2);
-        t2->column("mrec2_l", mrec2_2);
+        t2->column("mrec2_r", mrec2);
+        t2->column("mrec2_p", mrec2_2);
         t2->dumpData();
       }
       else{
@@ -404,16 +404,15 @@ namespace Belle {
         t1->column("m_lamc", m_lamc);     
         t1->column("mass_ach", mass_ach);
         t1->column("momentum", momentum);
-        t1->column("cha_ups", channel);     
-        t1->column("cha_tagg", channel_tagging);
-        t1->column("cha_l_tag", channel_lam_tag);
-        t1->column("cha_d_tag", channel_d_tag);
+        t1->column("channel_ups", channel);     
+        t1->column("channel_tagging", channel_tagging);
+        t1->column("channel_lam_tag", channel_lam_tag);
+        t1->column("channel_d_tag", channel_d_tag);
         t1->column("energy", energy);
         t1->column("ecm", ecm);
         t1->column("ntr", ntr);
-        t1->column("mrec2_n", mrec2);
-        t1->column("mrec2_s", mrec2_2);
-        t1->column("mrec2_l", mrec2_l);
+        t1->column("mrec2_r", mrec2);
+        t1->column("mrec2_p", mrec2_2);
         t1->dumpData();
       }
 

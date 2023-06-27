@@ -8,9 +8,9 @@ namespace Belle {
   void User_reco::hist_def( void )
   { extern BelleTupleManager* BASF_Histogram;    
     t1 = BASF_Histogram->ntuple ("sigma",
-         "m_lamc m_sigm mass_ach momentum cha_ups cha_tagg cha_l_tag cha_d_tag energy ecm ntr mrec2_n mrec2_s mrec2_l");
+         "m_lamc m_sigm m_ach p ch_u ch_l ch_ct en ecm ntr rm2_n rm2_s rm2_l");
     t2 = BASF_Histogram->ntuple ("lam_lept",
-      "m_lamc mass_ach momentum cha_ups cha_tagg cha_l_tag cha_d_tag energy ecm ntr mrec2_n mrec2_l");
+      "m_lamc m_ach p ch_u ch_l ch_ct en ecm ntr rm2_n rm2_l");
   };
   
   
@@ -63,6 +63,7 @@ namespace Belle {
     double ecm = BeamEnergy::Ecm();
     double elec = BeamEnergy::E_HER();
     double posi = BeamEnergy::E_LER();
+    VectorL beam =VectorL(elec*sin(0.022), 0.,elec*cos(0.022)-posi, elec+posi);
     
     /*************** Make particle lists ********************************/
 
@@ -137,8 +138,9 @@ namespace Belle {
       V=V-ip_position;
       V.setZ(0.);
       double p_id;
-      if (l->child(0).pType().mass()>l->child(1).pType().mass()) p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(0).mdstCharged()));
-      else p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(1).mdstCharged()));                               
+      if (l->child(0).pType().mass()>l->child(1).pType().mass())
+	p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(0).mdstCharged()));
+      else p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(1).mdstCharged()));
       if (abs(l->mass()-1.1157)>0.01 || l->mdstVee2().z_dist()>1. || p_id<0.6 ) {
         lam.erase(l); --l;
       }
@@ -151,7 +153,8 @@ namespace Belle {
       V=V-ip_position;
       V.setZ(0.);
       double p_id;
-      if (l->child(0).pType().mass()>l->child(1).pType().mass()) p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(0).mdstCharged()));
+      if (l->child(0).pType().mass()>l->child(1).pType().mass()) 
+	p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(0).mdstCharged()));
       else p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(1).mdstCharged()));                               
       if (abs(l->mass()-1.1157)>0.01 || l->mdstVee2().z_dist()>1. || p_id<0.6 ) {
         alam.erase(l); --l;
@@ -240,30 +243,27 @@ namespace Belle {
     setUserInfo(lamc_p,  11);
     setUserInfo(lamc_m,  11);
 
-    /*
     combination(lamc_p, m_ptypeLAMC, lam, pi_p, 0.1);
     combination(lamc_m, m_ptypeLAMC, alam, pi_m, 0.1);
     setUserInfo(lamc_p,  12);
-    setUserInfo(lamc_m,  12);
-    */
+    setUserInfo(lamc_m,  12);    
 
     /*
-    Sigma_c
+      Sigma_c
     */
    
-    combination(sigc_pp, m_ptypeSIGC0, lamc_p, pi_p, 0.5);
-    combination(sigc_mm, m_ptypeSIGC0, lamc_m, pi_m, 0.5);
+    combination(sigc_pp, m_ptypeSIGC0, lamc_p, pi_p);
+    combination(sigc_mm, m_ptypeSIGC0, lamc_m, pi_m);
     setUserInfo(sigc_pp,  11);
     setUserInfo(sigc_mm,  11);
 
-    combination(sigc0, m_ptypeSIGC0, lamc_p, pi_m, 0.5);
-    combination(asigc0, m_ptypeSIGC0, lamc_m, pi_p, 0.5);
+    combination(sigc0, m_ptypeSIGC0, lamc_p, pi_m);
+    combination(asigc0, m_ptypeSIGC0, lamc_m, pi_p);
     setUserInfo(sigc0,  12);
     setUserInfo(asigc0,  12);
 
-
     /*
-    elec posi
+      All together    
     */
 
     combination(ups, m_ptypeUPS4, lamc_p, lamct_m);
@@ -298,64 +298,67 @@ namespace Belle {
     elec posi through sigmac
     */
 
-    combination(ups, m_ptypeUPS4, sigc_pp, lamc_m, pi_m);
-    combination(ups, m_ptypeUPS4, sigc_mm, lamc_p, pi_p);
+    combination(ups, m_ptypeUPS4, sigc_pp, lamct_m, pi_m);
+    combination(ups, m_ptypeUPS4, sigc_mm, lamct_p, pi_p);
     setUserInfo(ups, 11);
 
-    combination(ups, m_ptypeUPS4, sigc0, lamc_m, pi_p);
-    combination(ups, m_ptypeUPS4, asigc0, lamc_p, pi_m);
+    combination(ups, m_ptypeUPS4, sigc0, lamct_m, pi_p);
+    combination(ups, m_ptypeUPS4, asigc0, lamct_p, pi_m);
     setUserInfo(ups, 12);
 
-    combination(ups, m_ptypeUPS4, sigc_pp, lamc_m, pi_m, rho);
-    combination(ups, m_ptypeUPS4, sigc_mm, lamc_p, pi_p, rho);
+    combination(ups, m_ptypeUPS4, sigc_pp, lamct_m, pi_m, rho);
+    combination(ups, m_ptypeUPS4, sigc_mm, lamct_p, pi_p, rho);
     setUserInfo(ups, 13);
 
-    combination(ups, m_ptypeUPS4, sigc0, lamc_m, pi_p, rho);
-    combination(ups, m_ptypeUPS4, sigc0, lamc_p, pi_m, rho);
+    combination(ups, m_ptypeUPS4, sigc0, lamct_m, pi_p, rho);
+    combination(ups, m_ptypeUPS4, sigc0, lamct_p, pi_m, rho);
     setUserInfo(ups, 14);
   
-    combination(ups, m_ptypeUPS4, sigc_mm, D0, p, pi_p);
     combination(ups, m_ptypeUPS4, sigc_pp, aD0, ap, pi_m);
+    combination(ups, m_ptypeUPS4, sigc_mm, D0, p, pi_p);
     setUserInfo(ups, 15);
+
+    combination(ups, m_ptypeUPS4, sigc0, aD0, ap, pi_p);
+    combination(ups, m_ptypeUPS4, asigc0, D0, p, pi_m);
+    setUserInfo(ups, 16);
     
-    combination(ups, m_ptypeUPS4, sigc_mm, D_p, p);
     combination(ups, m_ptypeUPS4, sigc_pp, D_m, ap);
-    setUserInfo(ups,  16);
-    
-    combination(ups, m_ptypeUPS4, sigc_mm, D_p, p, rho);
-    combination(ups, m_ptypeUPS4, sigc_pp, D_m, ap, rho);
+    combination(ups, m_ptypeUPS4, sigc_mm, D_p, p);
     setUserInfo(ups,  17);
+    
+    combination(ups, m_ptypeUPS4, sigc_pp, D_m, ap, rho);
+    combination(ups, m_ptypeUPS4, sigc_mm, D_p, p, rho);
+    setUserInfo(ups,  18);
+
+    combination(ups, m_ptypeUPS4, sigc0, D_m, ap, rho_2p);
+    combination(ups, m_ptypeUPS4, asigc0, D_p, p, rho_2m);
+    setUserInfo(ups,  19);
   
     
-    for(int j=0; j<ups.size(); ++j) 
-    {
+    for(int j=0; j<ups.size(); ++j){
       Particle u=ups[j];  
       short ntr=0;
       for(int jj=0; jj<all.size(); ++jj) 
       if (!checkSame(all[jj],u)) ntr++;
       Particle charm_tagging = u.child(0);
       Particle ach = u.child(1);
-      double energy = pStar(u, elec, posi).e();
-      double momentum = pStar(u, elec, posi).vect().mag();
+      double en = pStar(u, elec, posi).e();
+      double p = pStar(u, elec, posi).vect().mag();
       double m_lamc = 0;
       double m_sigm = 0;
+      double m_ach = ach.mass();
 
-      short channel = dynamic_cast<UserInfo&>(u.userInfo()).channel();
-      short chach = dynamic_cast<UserInfo&>(ach.userInfo()).channel();
+      short ch_u = dynamic_cast<UserInfo&>(u.userInfo()).channel();
+      short ch_ct = dynamic_cast<UserInfo&>(ach.userInfo()).channel();
       
-      short channel_d_tag = -1;
-      short channel_lam_tag = -1;
       short channel_tagging = -1;
-      
-      double mass_ach = ach.mass();
 
-      VectorL beam = VectorL(elec - posi, 0, 0, elec + posi); 
       VectorL prec = u.p();
       VectorL mis = beam - prec;
       double mrec2 = mis.m2();
       double mrec2_l = 0;
 
-      if (11 <= channel){
+      if (11 <= ch_u){
         VectorL p_l = charm_tagging.child(0).p();
         VectorL mis2 = beam - (prec - p_l);
         mrec2_l = mis2.m2();
@@ -364,56 +367,47 @@ namespace Belle {
       VectorL mis2 = beam - (prec - pl);
       double mrec2_2 = mis2.m2();
 
-
-      if (channel > 10){
+      if (ch_u > 10){
         Particle lam = charm_tagging.child(0);
         channel_tagging = dynamic_cast<UserInfo&>(lam.userInfo()).channel();
         m_lamc = lam.mass();
         m_sigm = charm_tagging.mass();
       }
       else {
-        short channel_tagging = dynamic_cast<UserInfo&>(charm_tagging.userInfo()).channel();
+        channel_tagging = dynamic_cast<UserInfo&>(charm_tagging.userInfo()).channel();
         m_lamc = charm_tagging.mass();
       }
 
-      if (channel <= 3 or (channel >= 11 and channel < 15)){
-        channel_lam_tag = chach;
-      }
-      else {
-        channel_d_tag = chach;
-      }
+    
 
-
-      if (channel < 10){
+      if (ch_u < 10){
         t2->column("m_lamc", m_lamc);     
-        t2->column("mass_ach", mass_ach);
-        t2->column("momentum", momentum);
-        t2->column("cha_ups", channel);     
-        t2->column("cha_tagg", channel_tagging);
-        t2->column("cha_l_tag", channel_lam_tag);
-        t2->column("cha_d_tag", channel_d_tag);
-        t2->column("energy", energy);
+        t2->column("m_ach", m_ach);
+        t2->column("p", p);
+        t2->column("ch_u", ch_u);     
+        t2->column("ch_l", channel_tagging);
+        t2->column("ch_ct", ch_ct);
+        t2->column("en", en);
         t2->column("ecm", ecm);
         t2->column("ntr", ntr);
-        t2->column("mrec2_n", mrec2);
-        t2->column("mrec2_l", mrec2_2);
+        t2->column("rm2_n", mrec2);
+        t2->column("rm2_l", mrec2_2);
         t2->dumpData();
       }
       else{
         t1->column("m_sigm", m_sigm);
         t1->column("m_lamc", m_lamc);     
-        t1->column("mass_ach", mass_ach);
-        t1->column("momentum", momentum);
-        t1->column("cha_ups", channel);     
-        t1->column("cha_tagg", channel_tagging);
-        t1->column("cha_l_tag", channel_lam_tag);
-        t1->column("cha_d_tag", channel_d_tag);
-        t1->column("energy", energy);
+        t1->column("m_ach", m_ach);
+        t1->column("p", p);
+        t1->column("ch_u", ch_u);     
+        t1->column("ch_l", channel_tagging);
+        t1->column("ch_ct", ch_ct);
+        t1->column("en", en);
         t1->column("ecm", ecm);
         t1->column("ntr", ntr);
-        t1->column("mrec2_n", mrec2);
-        t1->column("mrec2_s", mrec2_2);
-        t1->column("mrec2_l", mrec2_l);
+        t1->column("rm2_n", mrec2);
+        t1->column("rm2_s", mrec2_2);
+        t1->column("rm2_l", mrec2_l);
         t1->dumpData();
       }
 

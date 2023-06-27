@@ -7,12 +7,12 @@ namespace Belle {
   using namespace std;
   void User_reco::hist_def( void )
   { extern BelleTupleManager* BASF_Histogram;    
-    t1 = BASF_Histogram->ntuple ("sigma",
-         "m_lamc m_sigm mass_ach momentum cha_ups cha_tagg cha_l_tag cha_d_tag energy ecm ntr mrec2_n mrec2_s mrec2_l");
-    t2 = BASF_Histogram->ntuple ("lam_lept",
-      "m_lamc mass_ach momentum cha_ups cha_tagg cha_l_tag cha_d_tag energy ecm ntr mrec2_n mrec2_l");
+    t1 = BASF_Histogram->ntuple ("lmbda",
+         "ml mach p chu chl chct en ecm ntr rm2n rm2l rm2nu chrgl chrgach chrgU");
+    t2 = BASF_Histogram->ntuple ("sigma_check",
+          "dm ml ms chl p chs chrgl chrgs abar ml");
   };
-  
+
   
   int fill_tup(Particle lamc, /*vector<Particle> all,*/ double elec, double posi, double ecm, double r2, BelleTuple *t)
   {    
@@ -29,7 +29,7 @@ namespace Belle {
     static int nevent=0;
     static int nwritt=0;
     if(++nevent<2 || !(nevent%1000)) cout << "Event number " << nevent
-            << " selected" << nwritt << endl;
+            << " selected " << nwritt << endl;
     
     Belle_runhead_Manager& rhdmgr = Belle_runhead_Manager::get_manager();
     Belle_runhead_Manager::const_iterator rhd = rhdmgr.begin();
@@ -63,6 +63,7 @@ namespace Belle {
     double ecm = BeamEnergy::Ecm();
     double elec = BeamEnergy::E_HER();
     double posi = BeamEnergy::E_LER();
+    VectorL beam =VectorL(elec*sin(0.022), 0.,elec*cos(0.022)-posi, elec+posi);
     
     /*************** Make particle lists ********************************/
 
@@ -80,6 +81,10 @@ namespace Belle {
 
     //Cuts
     withDrDzCut(p, 1., 2.);
+    withDrDzCut(e_m, 1., 2.);
+    withDrDzCut(e_p, 1., 2.);
+    withDrDzCut(mu_m, 1., 2.);
+    withDrDzCut(mu_p, 1., 2.);
     withDrDzCut(k_m, 1., 2.);
     withDrDzCut(pi_p, 1., 2.);
     withDrDzCut(ap, 1., 2.);
@@ -109,13 +114,19 @@ namespace Belle {
     std::vector<Particle> D0, aD0, D_p, D_m;
     std::vector<Particle> k_s;
     
-    combination(rho, m_ptypeRHO0, pi_p, pi_m);
-
-    combination(rho_2p, m_ptypeRHO0, pi_p, pi_p);
-    combination(rho_2m, m_ptypeRHO0, pi_m, pi_m);
     combination(rho_mmp, m_ptypeRHO0, pi_m, pi_m, pi_p);
+    setUserInfo(rho_mmp,  -1);
     combination(rho_ppm, m_ptypeRHO0, pi_p, pi_p, pi_m);
+    setUserInfo(rho_ppm,  1);
+
+    combination(rho, m_ptypeRHO0, pi_p, pi_m);
+    setUserInfo(rho,  11);
     combination(rho4, m_ptypeRHO0, rho_2p, rho_2m);
+    setUserInfo(rho4,  13);
+    combination(rho_2p, m_ptypeRHO0, pi_p, pi_p);
+    setUserInfo(rho_2p,  12);
+    combination(rho_2m, m_ptypeRHO0, pi_m, pi_m);
+    setUserInfo(rho_2m,  -12);
 
     makeKs(k_s);
     makeLambda(lam,alam);
@@ -137,8 +148,9 @@ namespace Belle {
       V=V-ip_position;
       V.setZ(0.);
       double p_id;
-      if (l->child(0).pType().mass()>l->child(1).pType().mass()) p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(0).mdstCharged()));
-      else p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(1).mdstCharged()));                               
+      if (l->child(0).pType().mass()>l->child(1).pType().mass())
+	      p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(0).mdstCharged()));
+      else p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(1).mdstCharged()));
       if (abs(l->mass()-1.1157)>0.01 || l->mdstVee2().z_dist()>1. || p_id<0.6 ) {
         lam.erase(l); --l;
       }
@@ -151,7 +163,8 @@ namespace Belle {
       V=V-ip_position;
       V.setZ(0.);
       double p_id;
-      if (l->child(0).pType().mass()>l->child(1).pType().mass()) p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(0).mdstCharged()));
+      if (l->child(0).pType().mass()>l->child(1).pType().mass()) 
+	p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(0).mdstCharged()));
       else p_id=atc_pid(3,-1,5,4,2).prob(&(l->child(1).mdstCharged()));                               
       if (abs(l->mass()-1.1157)>0.01 || l->mdstVee2().z_dist()>1. || p_id<0.6 ) {
         alam.erase(l); --l;
@@ -160,77 +173,83 @@ namespace Belle {
 
     /*D*/
 
+    combination(D_p, m_ptypeDP, k_m, pi_p, pi_p, 0.05);
+    setUserInfo(D_p,  1);
+    combination(D_m, m_ptypeDM, k_p, pi_m, pi_m, 0.05);
+    setUserInfo(D_m,  -1);
+
+    combination(D_p, m_ptypeD0, k_s, pi_p, 0.05);
+    setUserInfo(D_m, -2);
+    combination(D_m, m_ptypeD0B, k_s, pi_m, 0.05);
+    setUserInfo(D_p, 2);
+
     combination(D0, m_ptypeD0, k_m, pi_p, 0.05);
     combination(aD0, m_ptypeD0B, k_p, pi_m, 0.05);
-    setUserInfo(D0,  1);
-    setUserInfo(aD0,  1);
+    setUserInfo(D0,  11);
+    setUserInfo(aD0,  11);
 
     combination(D0, m_ptypeD0, k_m, rho_2p, pi_m, 0.05);
     combination(aD0, m_ptypeD0B, k_p, rho_2m, pi_p, 0.05);
-    setUserInfo(D0,  2);
-    setUserInfo(aD0,  2);
+    setUserInfo(D0,  12);
+    setUserInfo(aD0,  12);
 
     combination(D0, m_ptypeD0, k_m, pi0, pi_p, 0.05);
     combination(aD0, m_ptypeD0B, k_p, pi0, pi_m, 0.05);
-    setUserInfo(D0, 3);
-    setUserInfo(aD0, 3);
+    setUserInfo(D0, 13);
+    setUserInfo(aD0, 13);
 
     combination(D0, m_ptypeD0, k_m, k_p, 0.05);
     combination(aD0, m_ptypeD0B, k_p, k_m, 0.05);
-    setUserInfo(D0, 4);
-    setUserInfo(aD0, 4);
+    setUserInfo(D0, 14);
+    setUserInfo(aD0, 14);
 
     combination(D0, m_ptypeD0, k_s, pi_p, pi_m, 0.05);
     combination(aD0, m_ptypeD0B, k_s, pi_p, pi_m, 0.05);
-    setUserInfo(D0, 5);
-    setUserInfo(aD0, 5);
+    setUserInfo(D0, 15);
+    setUserInfo(aD0, 15);
 
     combination(D0, m_ptypeD0, k_s, pi0, 0.05);
     combination(aD0, m_ptypeD0B, k_s, pi0, 0.05);
-    setUserInfo(D0, 6);
-    setUserInfo(aD0, 6);
+    setUserInfo(D0, 16);
+    setUserInfo(aD0, 16);
 
-    combination(D_p, m_ptypeDP, k_m, pi_p, pi_p, 0.05);
-    combination(D_m, m_ptypeDM, k_p, pi_m, pi_m, 0.05);
-    setUserInfo(D_p,  11);
-    setUserInfo(D_m,  11);
-
-    combination(D_p, m_ptypeD0, k_s, pi_p, 0.05);
-    combination(D_m, m_ptypeD0B, k_s, pi_m, 0.05);
-    setUserInfo(D_m, 12);
-    setUserInfo(D_p, 12);
 
 
     /*
     Lambda mesons
     */
 
-    combination(lamct_p, m_ptypeLAMC, p, k_m, pi_p, 0.1);
-    combination(lamct_m, m_ptypeLAMC, ap, k_p, pi_m, 0.1);
+    combination(lamct_m, m_ptypeLAMC, ap, k_p, pi_m, 0.05);
+    setUserInfo(lamct_m,  -1);
+
+    combination(lamct_p, m_ptypeLAMC, p, k_m, pi_p, 0.05);
     setUserInfo(lamct_p,  1);
-    setUserInfo(lamct_m,  1);
 
-    combination(lamct_p, m_ptypeLAMC, lam, pi_p, 0.1);
-    combination(lamct_m, m_ptypeLAMC, alam, pi_m, 0.1);
+    combination(lamct_m, m_ptypeLAMC, alam, pi_m, 0.05);
+    setUserInfo(lamct_m,  -2);
+
+    combination(lamct_p, m_ptypeLAMC, lam, pi_p, 0.05);
     setUserInfo(lamct_p,  2);
-    setUserInfo(lamct_m,  2);
 
-    combination(lamct_p, m_ptypeLAMC, p, k_s, 0.1);
-    combination(lamct_m, m_ptypeLAMC, ap, k_s, 0.1);
+    combination(lamct_m, m_ptypeLAMC, ap, k_s, 0.05);
+    setUserInfo(lamct_m,  -3);
+
+    combination(lamct_p, m_ptypeLAMC, p, k_s, rho, 0.05);
     setUserInfo(lamct_p,  3);
-    setUserInfo(lamct_m,  3);
 
-    combination(lamct_p, m_ptypeLAMC, p, k_s, rho, 0.1);
-    combination(lamct_m, m_ptypeLAMC, ap, k_s, rho, 0.1);
+    combination(lamct_m, m_ptypeLAMC, ap, k_s, rho, 0.05);
+    setUserInfo(lamct_m,  -4);
+
+    combination(lamct_p, m_ptypeLAMC, p, k_s, 0.05);
     setUserInfo(lamct_p,  4);
-    setUserInfo(lamct_m,  4);
+
 
 
     /*
     semileptonics mode
     */
 
-    combination(lamc_p, m_ptypeLAMC, lam, e_p);
+    /*combination(lamc_p, m_ptypeLAMC, lam, e_p);
     combination(lamc_m, m_ptypeLAMC, alam, e_m);
     setUserInfo(lamc_p,  10);
     setUserInfo(lamc_m,  10);
@@ -238,34 +257,62 @@ namespace Belle {
     combination(lamc_p, m_ptypeLAMC, lam, mu_p);
     combination(lamc_m, m_ptypeLAMC, alam, mu_m);
     setUserInfo(lamc_p,  11);
-    setUserInfo(lamc_m,  11);
+    setUserInfo(lamc_m,  11);*/
+
+    combination(lamc_p, m_ptypeLAMC, lam, pi_p, 0.05);
+    setUserInfo(lamc_p,  -2);
+
+    combination(lamc_m, m_ptypeLAMC, alam, pi_m, 0.05);
+    setUserInfo(lamc_m,  2);    
+
+    combination(lamc_p, m_ptypeLAMC, p, k_m, pi_p, 0.05);
+    setUserInfo(lamc_p,  -3);
+
+    combination(lamc_m, m_ptypeLAMC, ap, k_p, pi_m, 0.05);
+    setUserInfo(lamc_m,  3);
 
     /*
-    combination(lamc_p, m_ptypeLAMC, lam, pi_p, 0.1);
-    combination(lamc_m, m_ptypeLAMC, alam, pi_m, 0.1);
-    setUserInfo(lamc_p,  12);
-    setUserInfo(lamc_m,  12);
-    */
-
-    /*
-    Sigma_c
+      Sigma_c
     */
    
-    combination(sigc_pp, m_ptypeSIGC0, lamc_p, pi_p, 0.5);
-    combination(sigc_mm, m_ptypeSIGC0, lamc_m, pi_m, 0.5);
-    setUserInfo(sigc_pp,  11);
-    setUserInfo(sigc_mm,  11);
+    combination(sigc_mm, m_ptypeSIGC0, lamc_m, pi_m);
+    setUserInfo(sigc_mm,  -2);
 
-    combination(sigc0, m_ptypeSIGC0, lamc_p, pi_m, 0.5);
-    combination(asigc0, m_ptypeSIGC0, lamc_m, pi_p, 0.5);
-    setUserInfo(sigc0,  12);
-    setUserInfo(asigc0,  12);
+    combination(sigc_pp, m_ptypeSIGC0, lamc_p, pi_p);
+    setUserInfo(sigc_pp,  2);
+
+    combination(sigc0, m_ptypeSIGC0, lamc_p, pi_m);
+    setUserInfo(sigc0,  1);
+
+    combination(asigc0, m_ptypeSIGC0, lamc_m, pi_p);
+    setUserInfo(asigc0,  -1);
+
+    for(std::vector<Particle>::iterator l = sigc_pp.begin(); l!=sigc_pp.end(); ++l) {
+      if (l->mass()-l->child(0).mass()>0.18) {
+        sigc_pp.erase(l); --l;
+      }
+    }
+    for(std::vector<Particle>::iterator l = sigc_mm.begin(); l!=sigc_mm.end(); ++l) {
+      if (l->mass()-l->child(0).mass()>0.18) {
+        sigc_mm.erase(l); --l;
+      }
+    }
+    for(std::vector<Particle>::iterator l = sigc0.begin(); l!=sigc0.end(); ++l) {
+      if (l->mass()-l->child(0).mass()>0.18) {
+        sigc0.erase(l); --l;
+      }
+    }
+    for(std::vector<Particle>::iterator l = asigc0.begin(); l!=asigc0.end(); ++l) {
+      if (l->mass()-l->child(0).mass()>0.18) {
+        asigc0.erase(l); --l;
+      }
+    }
 
 
     /*
-    elec posi
+      All together    
     */
-
+    
     combination(ups, m_ptypeUPS4, lamc_p, lamct_m);
     combination(ups, m_ptypeUPS4, lamc_m, lamct_p);
     setUserInfo(ups, 1);
@@ -293,129 +340,80 @@ namespace Belle {
     combination(ups, m_ptypeUPS4, lamc_m, D_p, p, rho_mmp);
     combination(ups, m_ptypeUPS4, lamc_p, D_m, ap, rho_ppm);
     setUserInfo(ups,  7);
-    
-    /*
-    elec posi through sigmac
-    */
 
-    combination(ups, m_ptypeUPS4, sigc_pp, lamc_m, pi_m);
-    combination(ups, m_ptypeUPS4, sigc_mm, lamc_p, pi_p);
-    setUserInfo(ups, 11);
+    std::vector<Particle> sigc;
 
-    combination(ups, m_ptypeUPS4, sigc0, lamc_m, pi_p);
-    combination(ups, m_ptypeUPS4, asigc0, lamc_p, pi_m);
-    setUserInfo(ups, 12);
+    deepCopy(sigc0, sigc);
+    deepCopy(asigc0, sigc);
+    deepCopy(sigc_mm, sigc);
+    deepCopy(sigc_pp, sigc);
 
-    combination(ups, m_ptypeUPS4, sigc_pp, lamc_m, pi_m, rho);
-    combination(ups, m_ptypeUPS4, sigc_mm, lamc_p, pi_p, rho);
-    setUserInfo(ups, 13);
+    for(int i=0; i<sigc.size(); ++i){
+      Particle s = sigc[i];
+      Particle l = s.child(0);
+      int chs = dynamic_cast<UserInfo&>(s.userInfo()).channel();
+      int chl = dynamic_cast<UserInfo&>(l.userInfo()).channel();
+      short abar = 0;
 
-    combination(ups, m_ptypeUPS4, sigc0, lamc_m, pi_p, rho);
-    combination(ups, m_ptypeUPS4, sigc0, lamc_p, pi_m, rho);
-    setUserInfo(ups, 14);
-  
-    combination(ups, m_ptypeUPS4, sigc_mm, D0, p, pi_p);
-    combination(ups, m_ptypeUPS4, sigc_pp, aD0, ap, pi_m);
-    setUserInfo(ups, 15);
-    
-    combination(ups, m_ptypeUPS4, sigc_mm, D_p, p);
-    combination(ups, m_ptypeUPS4, sigc_pp, D_m, ap);
-    setUserInfo(ups,  16);
-    
-    combination(ups, m_ptypeUPS4, sigc_mm, D_p, p, rho);
-    combination(ups, m_ptypeUPS4, sigc_pp, D_m, ap, rho);
-    setUserInfo(ups,  17);
-  
-    
-    for(int j=0; j<ups.size(); ++j) 
-    {
-      Particle u=ups[j];  
+      t2->column("ml", l.mass());
+      t2->column("ms", s.mass());
+      t2->column("dm", s.mass() - l.mass() + l.pType().mass());     
+      t2->column("abar", abar);
+      t2->column("chrgl", chl / abs(chl));     
+      t2->column("chrgs", chs / abs(chs));     
+      t2->column("chs", abs(chs));
+      t2->column("chl", abs(chl));
+      t2->column("p", pStar(s, elec, posi).vect().mag());
+      t2->dumpData();
+    }
+      
+    for(int j=0; j<ups.size(); ++j){
+      Particle u=ups[j];
+
       short ntr=0;
+      short n = u.nChildren();
       for(int jj=0; jj<all.size(); ++jj) 
       if (!checkSame(all[jj],u)) ntr++;
-      Particle charm_tagging = u.child(0);
+
+      Particle lam = u.child(0);
       Particle ach = u.child(1);
-      double energy = pStar(u, elec, posi).e();
-      double momentum = pStar(u, elec, posi).vect().mag();
-      double m_lamc = 0;
-      double m_sigm = 0;
-
-      short channel = dynamic_cast<UserInfo&>(u.userInfo()).channel();
-      short chach = dynamic_cast<UserInfo&>(ach.userInfo()).channel();
-      
-      short channel_d_tag = -1;
-      short channel_lam_tag = -1;
-      short channel_tagging = -1;
-      
-      double mass_ach = ach.mass();
-
-      VectorL beam = VectorL(elec - posi, 0, 0, elec + posi); 
-      VectorL prec = u.p();
-      VectorL mis = beam - prec;
-      double mrec2 = mis.m2();
-      double mrec2_l = 0;
-
-      if (11 <= channel){
-        VectorL p_l = charm_tagging.child(0).p();
-        VectorL mis2 = beam - (prec - p_l);
-        mrec2_l = mis2.m2();
-      }         
-      VectorL pl = charm_tagging.p();
-      VectorL mis2 = beam - (prec - pl);
-      double mrec2_2 = mis2.m2();
-
-
-      if (channel > 10){
-        Particle lam = charm_tagging.child(0);
-        channel_tagging = dynamic_cast<UserInfo&>(lam.userInfo()).channel();
-        m_lamc = lam.mass();
-        m_sigm = charm_tagging.mass();
+      int chl = dynamic_cast<UserInfo&>(lam.userInfo()).channel();
+      int chu = dynamic_cast<UserInfo&>(lam.userInfo()).channel();
+      short chargU = 0;
+      /*
+      for (int k = 0; k < n; ++n){
+        int chan = 0;
+        if (chu >= 4 & k == 3){
+          chan = u.child(k).charge();
+        }
+        else{
+          chan = dynamic_cast<UserInfo&>(u.child(k).userInfo()).channel();
+          if (abs(chan) > 10 ){
+            chan = 0;
+          }
+        }
+        chargU = chargU + chan / abs(chan);
       }
-      else {
-        short channel_tagging = dynamic_cast<UserInfo&>(charm_tagging.userInfo()).channel();
-        m_lamc = charm_tagging.mass();
-      }
-
-      if (channel <= 3 or (channel >= 11 and channel < 15)){
-        channel_lam_tag = chach;
-      }
-      else {
-        channel_d_tag = chach;
-      }
+      */
 
 
-      if (channel < 10){
-        t2->column("m_lamc", m_lamc);     
-        t2->column("mass_ach", mass_ach);
-        t2->column("momentum", momentum);
-        t2->column("cha_ups", channel);     
-        t2->column("cha_tagg", channel_tagging);
-        t2->column("cha_l_tag", channel_lam_tag);
-        t2->column("cha_d_tag", channel_d_tag);
-        t2->column("energy", energy);
-        t2->column("ecm", ecm);
-        t2->column("ntr", ntr);
-        t2->column("mrec2_n", mrec2);
-        t2->column("mrec2_l", mrec2_2);
-        t2->dumpData();
-      }
-      else{
-        t1->column("m_sigm", m_sigm);
-        t1->column("m_lamc", m_lamc);     
-        t1->column("mass_ach", mass_ach);
-        t1->column("momentum", momentum);
-        t1->column("cha_ups", channel);     
-        t1->column("cha_tagg", channel_tagging);
-        t1->column("cha_l_tag", channel_lam_tag);
-        t1->column("cha_d_tag", channel_d_tag);
-        t1->column("energy", energy);
-        t1->column("ecm", ecm);
-        t1->column("ntr", ntr);
-        t1->column("mrec2_n", mrec2);
-        t1->column("mrec2_s", mrec2_2);
-        t1->column("mrec2_l", mrec2_l);
-        t1->dumpData();
-      }
+      t1->column("ml", lam.mass());
+      t1->column("mach", ach.mass() - ach.pType().mass());
+      t1->column("p", pStar(u, elec, posi).vect().mag());
+      t1->column("chu", chu);     
+      t1->column("chl", chl);
+      t1->column("chct", dynamic_cast<UserInfo&>(ach.userInfo()).channel());
+      t1->column("en", pStar(u, elec, posi).e());
+      t1->column("ecm", ecm);
+      t1->column("ntr", ntr);
+      t1->column("chrgl", chl / abs(chl));     
+      t1->column("chrgach", chu / abs(chu));
+      t1->column("chrgU", chargU);
+      t1->column("rm2n", (beam - u.p()).m2());
+      t1->column("rm2l", (beam - (u.p() - lam.p())).m2());
+      t1->column("rm2nu", (beam - (u.p() - lam.p() + lam.child(0).p() + lam.child(1).p())).m2());
+      t1->dumpData();
+
 
   *status = 1;
   }
